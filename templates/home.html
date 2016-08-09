@@ -1,0 +1,403 @@
+<%inherit file="/base.html"/>
+
+<%block name='head'>
+<title>title</title>
+${parent.head()}
+<style type="text/css">
+    .chat_ul li{
+        margin-left:-40px;
+    }
+</style>
+<script type="text/javascript">
+    var socket;
+    var room_id;
+    var username;
+    var usernames = [];
+    var userlives = [];
+    var pos;
+    var chat_panel;
+    var lycan_chat_panel;
+    var roll_table;
+    var left_col;
+    var user_roll = [];  //    数值数组
+    $(document).ready(function () {
+        chat_panel = document.getElementById("chat_panel");
+        lycan_chat_panel = document.getElementById("lycan_chat_panel");
+        roll_table = $("#roll_table");
+        left_col = $("#left_col");
+        init_register_window($("#register_window"));
+        init_prepare_window($("#prepare_window"));
+
+        //判断是否已登录
+        if ("${username}" == "") {
+            var register_window = $("#register_window").data("kendoWindow");
+            register_window.open();
+        } else {
+            var prepare_window = $("#prepare_window").data("kendoWindow");
+            prepare_window.open();
+        }
+
+        $("#login_btn").click(function () {
+            var a = 1;
+            $.post("${SITE_URL}login/", {
+                nick: $("#nick_input").val(),
+                psd: $("#psd_input").val(),
+            }, function (data, statue) {
+                if (data == "success") {
+                    $("#register_window").data("kendoWindow").close();
+                    var prepare_window = $("#prepare_window").data("kendoWindow");
+                    prepare_window.open();
+                } else {
+                    $("#login_invalid_msg").html(data);
+                }
+            });
+        })
+        $("#register_btn").click(function () {
+            $.post("${SITE_URL}register/", {
+                nick: $("#nick_input").val(),
+                psd: $("#psd_input").val(),
+            }, function (data, statue) {
+                if (data == "success") {
+                    $("#register_window").data("kendoWindow").close();
+                    var prepare_window = $("#prepare_window").data("kendoWindow");
+                    prepare_window.open();
+                } else {
+                    $("#login_invalid_msg").html(data);
+                }
+            })
+        })
+
+        $("#create_room_btn").click(function () {
+            room_id = $("#room_id_input").val();
+            $.post("${SITE_URL}create_room/", {
+                room_id: $("#room_id_input").val(),
+            }, function (data, statue) {
+                var dataobj = JSON.parse(data);
+                if (dataobj.result == "success") {
+                    username = dataobj.username;
+                    pos = dataobj.pos;
+                    $("#prepare_window").data("kendoWindow").close();
+                    connectWebSocket();
+                } else {
+                    $("#prepare_invalid_msg").html(dataobj.result);
+                }
+            })
+        })
+        $("#join_room_btn").click(function () {
+            room_id = $("#room_id_input").val();
+            $.post("${SITE_URL}join_room/", {
+                room_id: $("#room_id_input").val(),
+            }, function (data, statue) {
+                var dataobj = JSON.parse(data);
+                if (dataobj.result == "success") {
+                    username = dataobj.username;
+                    pos = dataobj.pos;
+                    $("#prepare_window").data("kendoWindow").close();
+                    connectWebSocket();
+                } else {
+                    $("#prepare_invalid_msg").html(dataobj.result);
+                }
+            })
+        })
+        
+        $("#ready_btn").click(function () {
+            var ready_btn = $("#ready_btn");
+            var ready_state = $("#ready_btn").val();
+            $.post("${SITE_URL}ready/", {
+                ready : ready_state,
+            }, function (data, statue) {
+                ready_btn.val(data);
+                if(data == "1") {
+                    $("#ready_panel").html("已准备");
+                    ready_btn.removeClass("btn-success");
+                    ready_btn.addClass("btn-danger");
+                    ready_btn.html("取消准备");
+                } else {
+                    $("#ready_panel").html("未准备");
+                    ready_btn.removeClass("btn-danger");
+                    ready_btn.addClass("btn-success");
+                    ready_btn.html("准备");
+                }
+            })
+        })
+
+
+    })
+
+
+//    回车发送
+    document.onkeydown=function(event){
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+             if(e && e.keyCode==13){ // enter 键
+                 $("#chat_btn").click();
+            }
+        };
+
+
+    function connectWebSocket() {
+        socket = new WebSocket("ws://" + window.location.host + "/" + room_id + "/");
+        socket.onmessage = function (e) {
+            var jsonobj = JSON.parse(e.data);
+            switch(jsonobj.func) {
+                case 1:
+                    $("#ready_div").remove();
+                    get_roll(jsonobj, left_col, user_roll, usernames, userlives, "${SITE_URL}");
+                    break;
+                case 2:
+                    $("#chat_ul").append("<li><span style='color: blue'>" + jsonobj.username + ":</span>" + jsonobj.text +"</li>");
+                    chat_scroll(chat_panel);
+                    break;
+                case 20:
+                    $("#lycan_chat_ul").append("<li><span style='color: blue'>" + jsonobj.username + ":</span>" + jsonobj.text +"</li>");
+                    chat_scroll(lycan_chat_panel);
+                    break;
+                case 21:
+                    god_say(jsonobj.text);
+                    break;
+                case 22:
+                    god_say("请自由组织发言");
+                    if(userlives[pos] > 0) {
+                        free_talk(left_col, "${SITE_URL}");
+                    }
+                    break;
+                case 3:
+                    god_say("请猎人选择垫背");
+                    if(username == jsonobj.hunter) {
+                        hunter_act(left_col, usernames, jsonobj.talk_list, "${SITE_URL}");
+                    }
+                    break;
+                case 4:
+                    god_say("请丘比特请选择情侣");
+                    if(get_current_roll() == "丘比特") {
+                        cupid_start(left_col, usernames, "${SITE_URL}");
+                    }
+                    break;
+                case 40:
+                    get_valentine(jsonobj, $("#roll_div"));
+                    break;
+                case 5:
+                    if(get_current_roll() == "守卫") {
+                        guard_start(left_col, usernames, userlives, "${SITE_URL}");
+                    }
+                    break;
+                case 6:
+                    if(get_current_roll() == "预言家") {
+                        seer_start(left_col, usernames, userlives, "${SITE_URL}");
+                    }
+                    break;
+                case 7:
+                    if(get_current_roll() == "狼人" ) {
+                        lycan_start(left_col, usernames, userlives, "${SITE_URL}");
+                        $("#lycan_chat_div").show();
+                    }
+                    break;
+                case 70:
+                    if(get_current_roll() == "狼人") {
+                        $("#lycan_chat_div").hide();
+//                      此div于lycan_start()函数中引入
+                        $("#lycan_div").remove();
+                    }
+                    break;
+                case 8:
+                    if(get_current_roll() == "女巫") {
+                        witch_start(left_col, usernames, userlives, "${SITE_URL}", jsonobj.poison, jsonobj.dead);
+                    }
+                    break;
+                case 9:
+                    update_dead(usernames, userlives, jsonobj.lost_dict);
+                    break;
+                case 95:
+                    vote_badge(left_col, usernames, "${SITE_URL}");
+                    break;
+                case 96:
+                    hand_badge(left_col, usernames, userlives, "${SITE_URL}");
+                    break;
+                case 100:
+                    vote_dead(left_col, usernames, jsonobj.talk_list, "${SITE_URL}");
+                    break;
+            }
+
+        }
+
+    }
+    
+    function get_current_roll() {
+        var life = userlives[pos];
+        if (life == 0) {
+            return ''
+        } else {
+            return roll_list[user_roll[2 - life]];
+        }
+    }
+
+    function chat_send() {
+        var input = $("#chat_input");
+        if(input.val() == "") return;
+        var data = {
+            func: 2,
+            text: input.val(),
+            username:username,
+        }
+        socket.send(JSON.stringify(data));
+        input.val("");
+    }
+
+    function lycan_chat_send() {
+        var input = $("#lycan_chat_span");
+        if(input.html() == "") return;
+        var data = {
+            func: 20,
+            text: input.html(),
+            username: username,
+        }
+        socket.send(JSON.stringify(data));
+        input.html("");
+    }
+
+    function lycan_btn_click(ev) {
+        var target = ev.target || ev.srcElement;
+        target = $(target);
+        if(target.html() == "清空") {
+            $("#lycan_chat_span").html("");
+        } else if(target.html() == "空格") {
+            $("#lycan_chat_span").html($("#lycan_chat_span").html() + " ");
+        } else {
+            $("#lycan_chat_span").html($("#lycan_chat_span").html() + target.html());
+        }
+    }
+
+    function god_say(words) {
+        $("#chat_ul").append("<li style='color: purple'>" + words +"</li>");
+        chat_scroll(chat_panel);
+    }
+
+</script>
+</%block>
+
+<%block name="content">
+
+<div id="tv">
+</div>
+
+<div class="container-fluid">
+    <div class="row" style="margin-right: -80px">
+        <div class="col-md-6">
+            <div id="left_col">
+                <!--准备div-->
+                <div id="ready_div">
+                    <p id="ready_panel" class="panel">未准备</p>
+                    <button id="ready_btn" class="btn btn-default" value="0">准备</button>
+                </div>
+            </div>
+            <!--狼人聊天框-->
+            <div id="lycan_chat_div" class="panel panel-primary" style="display: none">
+                <div class="panel-heading">
+                    <span class="glyphicon glyphicon-comment"></span> 狼人密聊
+                </div>
+                <div class="panel-body" id="lycan_chat_panel" style="padding:10px;height: 250px;overflow-y: scroll;word-break:break-all;">
+                    <ul id="lycan_chat_ul" class="chat_ul">
+                    </ul>
+                </div>
+                <div class="panel-footer">
+                    <div class="input-group">
+                        <span id="lycan_chat_span"></span>
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning btn-sm" id="lycan_chat_btn" onclick="lycan_chat_send()">
+                                Send</button>
+                        </span>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">0</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">1</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">2</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">3</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">4</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">5</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">6</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">7</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">8</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">9</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">好</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">坏</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">空格</button>
+                        <button class="btn btn-default" onclick="lycan_btn_click(event)">清空</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ==========================聊天框模板============================================ -->
+        <!--http://www.designrazor.net/goto/http://www.bootply.com/6mdOs5FvKU-->
+        <div class="col-md-6">
+            <div class="panel panel-primary" >
+                <div class="panel-heading">
+                    <span class="glyphicon glyphicon-comment"></span> Chat
+                </div>
+                <div class="panel-body" id="chat_panel" style="padding:10px;height: 450px;overflow-y: scroll;word-break:break-all;">
+                    <ul id="chat_ul" class="chat_ul">
+                    </ul>
+                </div>
+                <div class="panel-footer">
+                    <div class="input-group">
+                        <input id="chat_input" type="text" class="form-control input-sm"
+                               placeholder="Type your message here...">
+                        <span class="input-group-btn">
+                            <button class="btn btn-warning btn-sm" id="chat_btn" onclick="chat_send()">
+                                Send</button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--====================登录框==================================================-->
+
+<div id="register_window" style="display:none">
+    <div style="padding: 10px 80px 10px;">
+        <form class="bs-example bs-example-form" role="form">
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></span>
+                <input type="text" id="nick_input" name="nick" class="form-control" placeholder="昵称" required>
+            </div>
+            <br>
+
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-envelope"
+                                                      aria-hidden="true"></span></span>
+                <input type="password" id="psd_input" name="psd" class="form-control" placeholder="密码"
+                       required>
+            </div>
+            <p id="login_invalid_msg"></p>
+            <br>
+            <button type="button" id="login_btn" class="btn btn-default">登录</button>
+            <button type="button" id="register_btn" class="btn btn-default">注册</button>
+
+        </form>
+    </div>
+</div>
+
+<!--========================房间选择框=====================    -->
+
+<div id="prepare_window" style="display:none">
+    <div style="padding: 10px 80px 10px;">
+        <form class="bs-example bs-example-form" role="form">
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></span>
+                <input type="text" id="room_id_input" name="room_id" class="form-control" placeholder="房间名称" required>
+            </div>
+            <br>
+            <p id="prepare_invalid_msg"></p>
+            <br>
+            <button type="button" id="create_room_btn" class="btn btn-default">创建房间</button>
+            <button type="button" id="join_room_btn" class="btn btn-default">加入房间</button>
+
+        </form>
+    </div>
+</div>
+
+<!--===================================================================    -->
+
+
+</%block>
