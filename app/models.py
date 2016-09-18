@@ -11,7 +11,7 @@ class Room(models.Model):
     lycan = models.CharField(max_length=200, default='{"lycan_choice": {}}')
     poison = models.CharField(max_length=200, default='{"poison": 3}')
     badge = models.CharField(max_length=20, default='')
-    can_talk = models.BooleanField(default=False)
+    can_talk = models.BooleanField(default=True)
     talk_list = models.CharField(max_length=500, default='[]')
     finish_talk = models.CharField(max_length=500, default='[]')
     vote_badge = models.CharField(max_length=500, default='{}')

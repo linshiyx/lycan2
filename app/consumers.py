@@ -5,12 +5,14 @@ from channels.auth import channel_session_user_from_http
 from models import Room
 import lycan_static
 import lycan_biz
+from common.log import logger
 
 
 # Connected to websocket.connect
 @channel_session_user_from_http
 def ws_connect(message):
     room_id = message.content['path'].strip("/")
+    logger.error(room_id + ' ws_connected')
     message.channel_session['room_id'] = room_id
     # reply_channel存入Group
     Group("room-%s" % room_id).add(message.reply_channel)
@@ -30,7 +32,9 @@ def ws_message(message):
     room = Room.objects.filter(room_id=room_id)[0]
     jsonstr = message.content['text']
     jsonobj = json.loads(jsonstr)
+    logger.error('talk:')
     if jsonobj['func'] == lycan_static.func['chat_public'] and room.can_talk:
+        logger.error(room_id + ' send')
         Group("room-%s" % message.channel_session['room_id']).send({
             "text": jsonstr,
         })

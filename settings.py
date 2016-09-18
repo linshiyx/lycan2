@@ -73,7 +73,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.template.context_processors.request',
     'django.template.context_processors.csrf',
-    'common.context_processors.mysetting',      # 自定义模版context，可以在页面中使用STATIC_URL等变量
+    #'common.context_processors.mysetting',      # 自定义模版context，可以在页面中使用STATIC_URL等变量
     'django.template.context_processors.i18n',
 )
 # django template dir
@@ -114,7 +114,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lycan',
         'USER': 'root',
-        'PASSWORD': '941031',
+        'PASSWORD': 'Aa123123;',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
@@ -139,3 +139,184 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+#========================================
+#logging
+#==========================================
+
+LOGGING_DIR = os.path.join(PROJECT_DIR, 'logs', 'lycan')
+LOG_LEVEL = 'DEBUG'
+LOG_CLASS = 'logging.handlers.RotatingFileHandler'
+
+# 自动建立这个目录
+
+if not os.path.exists(LOGGING_DIR):
+
+    try:
+
+        os.makedirs(LOGGING_DIR)
+
+    except:
+
+        pass
+
+
+
+LOGGING = {
+
+    'version': 1,
+
+    'disable_existing_loggers': False,
+
+    'formatters': {
+
+        'verbose': {
+
+            'format': '%(levelname)s [%(asctime)s] %(pathname)s %(lineno)d %(funcName)s %(process)d %(thread)d \n \t %(message)s \n',
+
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+
+        },
+
+        'simple': {
+
+            'format': '%(levelname)s %(message)s \n'
+
+        },
+
+    },
+
+    'handlers': {
+
+        'null': {
+
+            'level': 'DEBUG',
+
+            'class': 'django.utils.log.NullHandler',
+
+        },
+
+        'mail_admins': {
+
+            'level': 'ERROR',
+
+            'class': 'django.utils.log.AdminEmailHandler'
+
+        },
+
+        'console': {
+
+            'level': 'DEBUG',
+
+            'class': 'logging.StreamHandler',
+
+            'formatter': 'simple'
+
+        },
+
+        'root': {
+
+            'class': LOG_CLASS,
+
+            'formatter': 'verbose',
+
+            'filename': os.path.join(LOGGING_DIR, '%s.log' % 'lycan'),
+
+            'maxBytes': 1024 * 1024 * 10,
+
+            'backupCount': 5
+
+        },
+
+        'component': {
+
+            'class': LOG_CLASS,
+
+            'formatter': 'verbose',
+
+            'filename': os.path.join(LOGGING_DIR, 'component.log'),
+
+            'maxBytes': 1024 * 1024 * 10,
+
+            'backupCount': 5
+
+        },
+
+        'wb_mysql':{
+
+            'class':LOG_CLASS,
+
+            'formatter':'verbose',
+
+            'filename':os.path.join(LOGGING_DIR,'wb_mysql.log'),
+
+            'maxBytes':1024*1024*4,
+
+            'backupCount':5
+
+        },
+
+    },
+
+    'loggers': {
+
+        'django': {
+
+            'handlers': ['null'],
+
+            'level': 'INFO',
+
+            'propagate': True,
+
+        },
+
+        'django.request': {
+
+            'handlers': ['console'],
+
+            'level': 'ERROR',
+
+            'propagate': True,
+
+        },
+
+        # the root logger ,用于整个project的logger
+
+        'root': {
+
+            'handlers': ['root'],
+
+            'level': LOG_LEVEL,
+
+            'propagate': True,
+
+        },
+
+        # 组件调用日志
+
+        'component': {
+
+            'handlers': ['component'],
+
+            'level': 'WARN',
+
+            'propagate': True,
+
+        },
+
+        # other loggers...
+
+        'django.db.backends': {
+
+            'handlers': ['wb_mysql'],
+
+            'level': 'DEBUG',
+
+            'propagate': True,
+
+        },
+
+    }
+
+}

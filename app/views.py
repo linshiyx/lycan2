@@ -9,6 +9,7 @@ import json
 import lycan_biz
 import lycan_static
 from channels import Channel, Group
+from common.log import logger
 
 # Create your views here.
 
@@ -28,7 +29,8 @@ def register_ajax(request):
     password = request.POST['psd']
     if User.objects.filter(username=username).exists():
         return HttpResponse(u'用户名已存在')
-    user = User.objects.create_user(username=username, password=username)
+    user = User.objects.create_user(username=username, password=password)
+    user.save()
     user = authenticate(username=username, password=password)
     login(request, user)
     return HttpResponse("success")
@@ -74,6 +76,7 @@ def join_room(request):
     user = request.user
     room_id = request.POST['room_id']
     room = Room.objects.filter(room_id=room_id)
+    logger.error(room)
     if not room:
         return HttpResponse(json.dumps({'result': u'房间名不存在'}))
     else:
@@ -107,7 +110,7 @@ def ready(request):
         for username in users:
             if users[username]['ready'] == '0':
                 all_ready = False
-        if all_ready:
+        if all_ready and len(users)>1:
             lycan_biz.game_start(room_id)
         return HttpResponse('1')
     else:
