@@ -1,10 +1,10 @@
 from django.db import models
-from django.utils import timezone
+
 
 # Create your models here.
 class Room(models.Model):
     room_id = models.CharField(max_length=20, db_index=True)
-    has_started = models.CharField(default=False)
+    has_started = models.BooleanField(default=False)
     game_round = models.IntegerField(default=0)
     users = models.CharField(max_length=2000)
     valentine = models.CharField(max_length=50, default='[]')

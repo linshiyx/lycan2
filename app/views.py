@@ -1,7 +1,6 @@
 #coding=utf-8
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render
 from common.mymako import render_mako_context, render_json
 from django.contrib.auth.models import User
 from models import Room
@@ -77,7 +76,6 @@ def join_room(request):
     user = request.user
     room_id = request.POST['room_id']
     room = Room.objects.filter(room_id=room_id)
-    logger.error(room)
     if not room:
         return HttpResponse(json.dumps({'result': u'房间名不存在'}))
     elif room[0].has_started:

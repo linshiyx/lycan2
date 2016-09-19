@@ -12,7 +12,6 @@ from common.log import logger
 @channel_session_user_from_http
 def ws_connect(message):
     room_id = message.content['path'].strip("/")
-    logger.error(room_id + ' ws_connected')
     message.channel_session['room_id'] = room_id
     message.channel_session['username'] = message.user.username
     # reply_channel存入Group

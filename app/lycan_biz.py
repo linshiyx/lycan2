@@ -22,7 +22,6 @@ def game_start(room_id):
         for username in users:
             if(users[username]['pos'] == i):
                 usernames.append(username)
-        # [str(users[username]['pos'])] = username
     for username in users:
         # 角色存入room
         user = users[username]
