@@ -59,6 +59,9 @@ def ws_disconnect(message):
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
     })
+    # 当房间无人
+    if len(users) == 0:
+        room.delete()
 
 
 # 天黑
