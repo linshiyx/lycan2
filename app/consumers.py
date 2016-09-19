@@ -14,6 +14,7 @@ def ws_connect(message):
     room_id = message.content['path'].strip("/")
     logger.error(room_id + ' ws_connected')
     message.channel_session['room_id'] = room_id
+    message.channel_session['username'] = message.user.username
     # reply_channel存入Group
     Group("room-%s" % room_id).add(message.reply_channel)
     # reply_channel存入Room
@@ -48,6 +49,17 @@ def ws_message(message):
 @channel_session_user_from_http
 def ws_disconnect(message):
     Group("room-%s" % message.channel_session['room_id']).discard(message.reply_channel)
+    room_id = message.channel_session['room_id']
+    room = Room.objects.filter(room_id=room_id)[0]
+    users = json.loads(room.users)
+    del users[message.channel_session['username']]
+    room.users = json.dumps(users)
+    room.save()
+    # 通知更改房间人数
+    resp = {'func': lycan_static.func['people_num'], 'people_num': len(users)}
+    Group("room-%s" % room_id).send({
+        "text": json.dumps(resp),
+    })
 
 
 # 天黑

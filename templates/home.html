@@ -44,9 +44,10 @@ ${parent.head()}
                 psd: $("#psd_input").val(),
             }, function (data, statue) {
                 if (data == "success") {
-                    $("#register_window").data("kendoWindow").close();
-                    var prepare_window = $("#prepare_window").data("kendoWindow");
-                    prepare_window.open();
+//                    $("#register_window").data("kendoWindow").close();
+//                    var prepare_window = $("#prepare_window").data("kendoWindow");
+//                    prepare_window.open();
+                    window.location.href="/";
                 } else {
                     $("#login_invalid_msg").html(data);
                 }
@@ -58,9 +59,10 @@ ${parent.head()}
                 psd: $("#psd_input").val(),
             }, function (data, statue) {
                 if (data == "success") {
-                    $("#register_window").data("kendoWindow").close();
-                    var prepare_window = $("#prepare_window").data("kendoWindow");
-                    prepare_window.open();
+//                    $("#register_window").data("kendoWindow").close();
+//                    var prepare_window = $("#prepare_window").data("kendoWindow");
+//                    prepare_window.open();
+                    window.location.href="/";
                 } else {
                     $("#login_invalid_msg").html(data);
                 }
@@ -76,6 +78,7 @@ ${parent.head()}
                 if (dataobj.result == "success") {
                     username = dataobj.username;
                     pos = dataobj.pos;
+                    $("#people_num").html(dataobj.people_num);
                     $("#prepare_window").data("kendoWindow").close();
                     connectWebSocket();
                 } else {
@@ -92,6 +95,7 @@ ${parent.head()}
                 if (dataobj.result == "success") {
                     username = dataobj.username;
                     pos = dataobj.pos;
+                    $("#people_num").html(dataobj.people_num);
                     $("#prepare_window").data("kendoWindow").close();
                     connectWebSocket();
                 } else {
@@ -142,6 +146,9 @@ ${parent.head()}
                 case 1:
                     $("#ready_div").remove();
                     get_roll(jsonobj, left_col, user_roll, usernames, userlives, "${SITE_URL}");
+                    break;
+                case 11:
+                    $("#people_num").html(jsonobj.people_num);
                     break;
                 case 2:
                     $("#chat_ul").append("<li><span style='color: blue'>" + jsonobj.username + ":</span>" + jsonobj.text +"</li>");
@@ -285,6 +292,7 @@ ${parent.head()}
             <div id="left_col">
                 <!--准备div-->
                 <div id="ready_div">
+                    <p class="panel"><span>房间人数：</span><span id="people_num"></span></p>
                     <p id="ready_panel" class="panel">未准备</p>
                     <button id="ready_btn" class="btn btn-default" value="0">准备</button>
                 </div>

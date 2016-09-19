@@ -36,6 +36,7 @@ def game_start(room_id):
             'text': json.dumps(resp),
         })
     room.users = json.dumps(users)
+    room.has_started = True
     room.save()
 
 

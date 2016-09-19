@@ -11,6 +11,7 @@ roll_num = {'5': {'0': 3, '1': 2, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1},
 
 func = {
     'send_roll' : 1,
+    'people_num' : 11,
     'chat_public': 2,
     'chat_lycan': 20,
     'chat_gm': 21,

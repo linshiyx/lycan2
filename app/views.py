@@ -1,5 +1,5 @@
 #coding=utf-8
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render
 from common.mymako import render_mako_context, render_json
@@ -33,7 +33,7 @@ def register_ajax(request):
     user.save()
     user = authenticate(username=username, password=password)
     login(request, user)
-    return HttpResponse("success")
+    return HttpResponse('success')
 
 
 def login_ajax(request):
@@ -67,6 +67,7 @@ def create_room(request):
         resp['username'] = user.username
         resp['pos'] = 0
         resp['result'] = 'success'
+        resp['people_num'] = 1
         return HttpResponse(json.dumps(resp))
     else:
         return HttpResponse(json.dumps({'result': u'房间名已存在'}))
@@ -79,6 +80,8 @@ def join_room(request):
     logger.error(room)
     if not room:
         return HttpResponse(json.dumps({'result': u'房间名不存在'}))
+    elif room[0].has_started:
+        return HttpResponse(json.dumps({'result': u'游戏已开始'}))
     else:
         room = room[0]
         # 加入房间
@@ -89,10 +92,16 @@ def join_room(request):
         # 房间存入session
         request.session['room_id'] = room_id
         request.session.modified = True
+        # 通知更改房间人数
+        resp = {'func': lycan_static.func['people_num'], 'people_num': len(users)}
+        Group("room-%s" % room_id).send({
+            "text": json.dumps(resp),
+        })
         resp = {}
         resp['username'] = user.username
         resp['pos'] = len(users) - 1
         resp['result'] = 'success'
+        resp['people_num'] = len(users)
         return HttpResponse(json.dumps(resp))
 
 
