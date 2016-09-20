@@ -12,6 +12,11 @@ from common.log import logger
 
 # Create your views here.
 
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+
 
 def index(request):
     # 强制response中包含csrftoken，在蓝鲸中删去
@@ -165,7 +170,7 @@ def confirm_valentine(request):
     # 保存情侣
     if room.valentine != '[]':
         return
-    logger.debug('confirm_valentine：' + valentine1 + ' ' + valentine2)
+    logger.debug('confirm_valentine：' + valentine1.decode().encode('utf-8') + ' ' + valentine2.decode().encode('utf-8'))
     room.valentine = json.dumps([valentine1, valentine2])
     room.save()
     # 通知情侣1
