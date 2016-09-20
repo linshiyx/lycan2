@@ -111,7 +111,7 @@ def round_init(room_id):
     # 初始化女巫选择
     if is_exist(room, u'女巫'):
         poison = json.loads(room.poison)
-        poison['dead'] = 'cantbeaname'
+        poison['dead'] = ''
         poison['is_rescue'] = False
         room.poison = json.dumps(poison)
         pass

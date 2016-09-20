@@ -239,8 +239,6 @@ def confirm_dead(request):
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     lycan = json.loads(room.lycan)
-    if lycan.get('dead', ''):
-        return
     logger.debug('confirm_dead:' + username + '->' + choice)
     lycan_choice = lycan['lycan_choice']
     lycan_choice[username] = choice
@@ -252,9 +250,8 @@ def confirm_dead(request):
             same = False
             break
     if not same:
-        pass
-    else:
         return HttpResponse('not same')
+    else:
         lycan['dead'] = choice
         room.lycan = json.dumps(lycan)
         room.save()
@@ -274,8 +271,8 @@ def confirm_witch(request):
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     poison = json.loads(room.poison)
-    if poison['dead'] != 'cantbeaname':
-        return
+    # if poison['dead'] != 'cantbeaname':
+    #     return
     logger.debug('confirm_witch:' + choice + ' ' + is_rescue)
     if choice:
         poison['poison'] -= 2
