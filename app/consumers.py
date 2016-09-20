@@ -25,6 +25,10 @@ def ws_connect(message):
     user['reply_channel'] = message.reply_channel.name
     room.users = json.dumps(users)
     room.save()
+    resp = {'func': lycan_static.func['chat_gm'], 'text': message.user.username + u' 进入房间'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
 
 
 # Connected to websocket.receive
@@ -64,6 +68,10 @@ def ws_disconnect(message):
     # 当房间无人
     if len(users) == 0:
         room.delete()
+    resp = {'func': lycan_static.func['chat_gm'], 'text': message.channel_session['username'] + u' 离开了房间'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
 
 
 # 天黑
