@@ -118,16 +118,18 @@ def guard_start(message):
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若守卫存在
-    if lycan_biz.is_exist(room, u'守卫'):
+    is_exist = lycan_biz.is_exist(room, u'守卫')
+    if is_exist:
         resp = {'func': lycan_static.func['chat_gm'], 'text': u'守卫请守卫'}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
         })
     # 若守卫不在场
     if not lycan_biz.is_alive(room, u'守卫'):
-        time.sleep(random.randint(2,10))
+        # time.sleep(random.randint(2,10))
         Channel('seer_start').send({
             'room_id': room_id,
+            'delay': is_exist,
         })
         return
     # 通知
@@ -138,19 +140,23 @@ def guard_start(message):
 
 
 def seer_start(message):
+    if message.get('delay', False):
+        time.sleep(random.randint(2,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若预言家存在
-    if lycan_biz.is_exist(room, u'预言家'):
+    is_exist = lycan_biz.is_exist(room, u'预言家')
+    if is_exist:
         resp = {'func': lycan_static.func['chat_gm'], 'text': u'预言家请验人'}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
         })
     # 若预言家不在场
     if not lycan_biz.is_alive(room, u'预言家'):
-        time.sleep(random.randint(2,10))
+        # time.sleep(random.randint(2,10))
         Channel('lycan_start').send({
             'room_id': room_id,
+            'delay': is_exist,
         })
         return
     # 通知
@@ -161,6 +167,8 @@ def seer_start(message):
 
 
 def lycan_start(message):
+    if message.get('delay', False):
+        time.sleep(random.randint(2,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 通知狼人回合开始
@@ -170,9 +178,10 @@ def lycan_start(message):
     })
     # 若狼人不在场
     if not lycan_biz.is_alive(room, u'狼人'):
-        time.sleep(random.randint(2,10))
+        # time.sleep(random.randint(2,10))
         Channel('witch_start').send({
             'room_id': room_id,
+            'delay': True,
         })
         return
     # 通知
@@ -183,10 +192,13 @@ def lycan_start(message):
 
 
 def witch_start(message):
+    if message.get('delay', False):
+        time.sleep(random.randint(2,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若女巫存在
-    if lycan_biz.is_exist(room, u'女巫'):
+    is_exist = lycan_biz.is_exist(room, u'女巫')
+    if is_exist:
         resp = {'func': lycan_static.func['chat_gm'], 'text': u'女巫毒人救人'}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
@@ -194,9 +206,10 @@ def witch_start(message):
     # 若女巫不在场或无药
     poison = json.loads(room.poison)
     if (not lycan_biz.is_alive(room, u'女巫')) or (poison['poison'] == 0):
-        time.sleep(random.randint(2,10))
+        # time.sleep(random.randint(2,10))
         Channel('day_start').send({
             'room_id': room_id,
+            'delay': is_exist,
         })
         return
     # 通知女巫
@@ -209,6 +222,8 @@ def witch_start(message):
 
 
 def day_start(message):
+    if message.get('delay', False):
+        time.sleep(random.randint(2,10))
     # 通知天亮了
     room_id = message['room_id']
     resp = {'func': lycan_static.func['chat_gm'], 'text': u'天亮了'}
