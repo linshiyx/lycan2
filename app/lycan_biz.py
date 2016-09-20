@@ -6,6 +6,10 @@ from . import lycan_static
 from channels import Channel, Group
 from common.log import logger
 
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
 
 def game_start(room_id):
     room = Room.objects.filter(room_id=room_id)[0]

@@ -31,6 +31,7 @@ def ws_connect(message):
     user['reply_channel'] = message.reply_channel.name
     room.users = json.dumps(users)
     room.save()
+    logger.info(message.user.username + u"进入了房间")
     resp = {'func': lycan_static.func['chat_gm'], 'text': message.user.username + u' 进入房间'}
     Group('room-%s' % room_id).send({
         'text': json.dumps(resp)
@@ -74,6 +75,7 @@ def ws_disconnect(message):
     # 当房间无人
     if len(users) == 0:
         room.delete()
+    logger.info(message.channel_session['username'] + u'离开了房间')
     resp = {'func': lycan_static.func['chat_gm'], 'text': message.channel_session['username'] + u' 离开了房间'}
     Group('room-%s' % room_id).send({
         'text': json.dumps(resp)
