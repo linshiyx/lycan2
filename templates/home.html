@@ -274,7 +274,10 @@ ${parent.head()}
     }
 
     function god_say(words) {
-        $("#chat_ul").append("<li style='color: purple'>" + words +"</li>");
+        w = words.split("\n");
+        for(var i=0; i<w.length; i++) {
+            $("#chat_ul").append("<li style='color: purple'>" + w[i] +"</li>");
+        }
         chat_scroll(chat_panel);
     }
 

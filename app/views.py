@@ -313,7 +313,7 @@ def vote_badge(request):
     room.badge = lycan_biz.count_vote(vote_list)
     room.save()
     # 公布投票结果
-    text = u'投票结果：'
+    text = u'投票结果：\n'
     for name in vote_list:
         if vote_list[name]:
             text += name + "->" +  vote_list[name] + "\n"
@@ -444,7 +444,7 @@ def vote_dead(request):
     if len(talk_list) != len(vote_list):
         return HttpResponse("wait_others_to_vote")
     # 公布投票结果
-    text = u'投票结果：'
+    text = u'投票结果：\n'
     for name in vote_list:
         if vote_list[name]:
             text += name + "->" + vote_list[name] + "\n"
