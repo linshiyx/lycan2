@@ -4,6 +4,7 @@ import json
 from models import Room
 from . import lycan_static
 from channels import Channel, Group
+from common.log import logger
 
 
 def game_start(room_id):
@@ -94,7 +95,8 @@ def round_init(room_id):
         # 找出狼人
         lycan_choice = {}
         for username in users:
-            if lycan_static.roll_name[users[username]['roll1']] == u'狼人':
+            # if lycan_static.roll_name[users[username]['roll1']] == u'狼人':
+            if current_roll(room, username) == u'狼人':
                 Group("room-%s-lycan" % room_id).add(Channel(users[username]['reply_channel']))
                 lycan_choice[username] = ''
         lycan = {
@@ -105,7 +107,7 @@ def round_init(room_id):
     # 初始化女巫选择
     if is_exist(room, u'女巫'):
         poison = json.loads(room.poison)
-        poison['dead'] = ''
+        poison['dead'] = 'cantbeaname'
         poison['is_rescue'] = False
         room.poison = json.dumps(poison)
         pass
@@ -148,6 +150,7 @@ def update_dead(room_id, lost_dict):
     room.users = json.dumps(users)
     room.talk_list = json.dumps(talk_list)
     room.save()
+    logger.info(room_id + ':' + json.dumps(lost_dict))
     # 客户端通知更新命数
     resp = {'func': lycan_static.func['notify_dead']}
     resp['lost_dict'] = lost_dict
@@ -157,8 +160,8 @@ def update_dead(room_id, lost_dict):
 
 
 
-# def valentine_dead(room_id):
 #     room = Room.objects.filter(room_id=room_id)[0]
+# def valentine_dead(room_id):
 #     users = json.loads(room.users)
 #     valentine = json.loads(room.valentine)
 #     # 将情侣生命值设为0

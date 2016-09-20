@@ -5,6 +5,8 @@ from channels.auth import channel_session_user_from_http
 from models import Room
 import lycan_static
 import lycan_biz
+import time
+import random
 from common.log import logger
 
 
@@ -32,13 +34,13 @@ def ws_message(message):
     room = Room.objects.filter(room_id=room_id)[0]
     jsonstr = message.content['text']
     jsonobj = json.loads(jsonstr)
-    logger.error('talk:')
     if jsonobj['func'] == lycan_static.func['chat_public'] and room.can_talk:
-        logger.error(room_id + ' send')
+        logger.info('chat_public:' + jsonstr)
         Group("room-%s" % message.channel_session['room_id']).send({
             "text": jsonstr,
         })
     elif jsonobj['func'] == lycan_static.func['chat_lycan']:
+        logger.info('chat_lycan:' + jsonstr)
         Group("room-%s-lycan" % message.channel_session['room_id']).send({
             "text": jsonstr,
         })
@@ -107,6 +109,7 @@ def guard_start(message):
         })
     # 若守卫不在场
     if not lycan_biz.is_alive(room, u'守卫'):
+        time.sleep(random.randint(2,10))
         Channel('seer_start').send({
             'room_id': room_id,
         })
@@ -129,6 +132,7 @@ def seer_start(message):
         })
     # 若预言家不在场
     if not lycan_biz.is_alive(room, u'预言家'):
+        time.sleep(random.randint(2,10))
         Channel('lycan_start').send({
             'room_id': room_id,
         })
@@ -150,6 +154,7 @@ def lycan_start(message):
     })
     # 若狼人不在场
     if not lycan_biz.is_alive(room, u'狼人'):
+        time.sleep(random.randint(2,10))
         Channel('witch_start').send({
             'room_id': room_id,
         })
@@ -173,6 +178,7 @@ def witch_start(message):
     # 若女巫不在场或无药
     poison = json.loads(room.poison)
     if (not lycan_biz.is_alive(room, u'女巫')) or (poison['poison'] == 0):
+        time.sleep(random.randint(2,10))
         Channel('day_start').send({
             'room_id': room_id,
         })

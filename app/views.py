@@ -107,8 +107,11 @@ def ready(request):
     ready = request.POST['ready']
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
+    if room.has_started:
+        return
     users = json.loads(room.users)
     user = users[request.user.username]
+    logger.debug(request.user.username + ' ready')
     if(ready == '0'):
         user['ready'] = '1'
         room.users = json.dumps(users)
@@ -132,6 +135,9 @@ def confirm_roll(request):
     room = Room.objects.filter(room_id=room_id)[0]
     users = json.loads(room.users)
     user = users[request.user.username]
+    if user.get('roll1', ''):
+        return
+    logger.debug(request.user.username + ' confirm_roll:' + request.POST['roll1'] + ' ' + request.POST['roll2'])
     # 保存用户身份
     user['roll1'] = request.POST['roll1']
     user['roll2'] = request.POST['roll2']
@@ -157,6 +163,9 @@ def confirm_valentine(request):
     room = Room.objects.filter(room_id=room_id)[0]
     users = json.loads(room.users)
     # 保存情侣
+    if room.valentine != '[]':
+        return
+    logger.debug('confirm_valentine：' + valentine1 + ' ' + valentine2)
     room.valentine = json.dumps([valentine1, valentine2])
     room.save()
     # 通知情侣1
@@ -185,6 +194,9 @@ def confirm_guarded(request):
     guarded = request.POST['guarded']
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
+    if room.guarded:
+        return
+    logger.debug('confirm_guarded:' + guarded)
     room.guarded = guarded
     room.save()
     Channel('seer_start').send({
@@ -197,15 +209,18 @@ def request_seen(request):
     seen = request.POST['seen']
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
-    users = json.loads(room.users)
-    user = users[seen]
-    if lycan_static.roll_name[user['roll1']] == u'狼人':
+    logger.debug('seen:' + seen)
+    # users = json.loads(room.users)
+    # user = users[seen]
+    # if lycan_static.roll_name[user['roll1']] == u'狼人':
+    if lycan_biz.current_roll(room, seen) == u'狼人':
         return HttpResponse('坏人')
     else:
         return HttpResponse('好人')
 
 
 def confirm_seen(request):
+    logger.debug('confirm_seen')
     room_id = request.session['room_id']
     Channel('lycan_start').send({
         'room_id': room_id,
@@ -219,6 +234,9 @@ def confirm_dead(request):
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     lycan = json.loads(room.lycan)
+    if lycan.get('dead', ''):
+        return
+    logger.debug('confirm_dead:' + username + '->' + choice)
     lycan_choice = lycan['lycan_choice']
     lycan_choice[username] = choice
     room.lycan = json.dumps(lycan)
@@ -229,8 +247,9 @@ def confirm_dead(request):
             same = False
             break
     if not same:
-        return HttpResponse('not same')
+        pass
     else:
+        return HttpResponse('not same')
         lycan['dead'] = choice
         room.lycan = json.dumps(lycan)
         room.save()
@@ -241,7 +260,7 @@ def confirm_dead(request):
         Channel('witch_start').send({
             'room_id': room_id,
         })
-        return HttpResponse('lycan_choose_success')
+    return HttpResponse('lycan_choose_success')
 
 
 def confirm_witch(request):
@@ -250,9 +269,14 @@ def confirm_witch(request):
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     poison = json.loads(room.poison)
+    if poison['dead'] != 'cantbeaname':
+        return
+    logger.debug('confirm_witch:' + choice + ' ' + is_rescue)
     if choice:
         poison['poison'] -= 2
         poison['dead'] = choice
+    else:
+        poison['dead'] = ''
     if is_rescue == 'true':
         poison['poison'] -= 1
         poison['is_rescue'] = True
@@ -270,6 +294,11 @@ def vote_badge(request):
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     talk_list = json.loads(room.talk_list)
+    logger.debug('vote_badge:' + username + '->' + choice)
+    resp = {'func': lycan_static.func['chat_gm'], 'text': username + u' 已投票'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
     # 更新投票记录
     vote_list = json.loads(room.vote_badge)
     vote_list[username] = choice
@@ -285,9 +314,9 @@ def vote_badge(request):
     text = u'投票结果：'
     for name in vote_list:
         if vote_list[name]:
-            text += name + "->" +  vote_list[name] + " "
+            text += name + "->" +  vote_list[name] + "\n"
         else:
-            text += name + u'弃权 '
+            text += name + u'弃权\n'
     resp = {'func': lycan_static.func['chat_gm'], 'text': text}
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
@@ -322,6 +351,7 @@ def confirm_hunted(request):
     hunted = request.POST['hunted']
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
+    logger.debug('confirm_hunted:' + hunted)
     lycan_biz.deal_dead(room_id, [hunted])
     # 游戏是否结束
     if lycan_biz.check_result(room_id):
@@ -340,6 +370,7 @@ def hand_badge(request):
     # 保存转交结果
     room.badge = choice
     room.save()
+    logger.debug('hand_badge:' + choice)
     # 通知转交结果
     resp = {'func': lycan_static.func['chat_gm'], 'text': u'警长为' + room.badge}
     Group("room-%s" % room_id).send({
@@ -366,6 +397,11 @@ def hand_badge(request):
 def finish_talk(request):
     username = request.user.username
     room_id = request.session['room_id']
+    logger.debug('finish_talk:' + username)
+    resp = {'func': lycan_static.func['chat_gm'], 'text': username + u' 结束发言'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
     room = Room.objects.filter(room_id=room_id)[0]
     finish_list = json.loads(room.finish_talk)
     finish_set = set(finish_list)
@@ -390,6 +426,11 @@ def vote_dead(request):
     username = request.user.username
     choice = request.POST['choice']
     room_id = request.session['room_id']
+    resp = {'func': lycan_static.func['chat_gm'], 'text': username + u' 已投票'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
+    logger.debug('vote_dead:' + username + '->' + choice)
     room = Room.objects.filter(room_id=room_id)[0]
     talk_list = json.loads(room.talk_list)
     # 更新投票记录
@@ -404,9 +445,9 @@ def vote_dead(request):
     text = u'投票结果：'
     for name in vote_list:
         if vote_list[name]:
-            text += name + "->" + vote_list[name] + " "
+            text += name + "->" + vote_list[name] + "\n"
         else:
-            text += name + u'弃权 '
+            text += name + u' 弃权\n'
     resp = {'func': lycan_static.func['chat_gm'], 'text': text}
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),

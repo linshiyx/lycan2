@@ -38,12 +38,12 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) 
 
     // 确认身份顺序
     var roll_id1 = parseInt(jsonobj.roll1);
-    var roll_id2 = parseInt(jsonobj.roll2)
+    var roll_id2 = parseInt(jsonobj.roll2);
     var roll_div = $("<div id='roll_div' style='border-bottom: 2px solid #428bca; " +
         "margin-bottom: 5px; padding-bottom: 5px'></div>");
     var roll_span = $("<span></span>");
     roll_span.html("您的两个身份分别是：" + roll_list[roll_id1] + "和" + roll_list[roll_id2] + "，是否将" +
-        roll_list[roll_id1] + "作为第一身份？(丘比特必须作为第一身份，否则系统崩溃)");
+        roll_list[roll_id1] + "作为第一身份？");
     // 是与否按钮
     var confirm_btn = $("<button class='btn btn-success'>是</button>");
     var deny_btn = $("<button class='btn btn-danger'>否</button>");
@@ -71,6 +71,10 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) 
     roll_div.append(roll_span);
     roll_div.append(confirm_btn);
     roll_div.append(deny_btn);
+
+    if (roll_id1 == 6 || roll_id2 == 6) {
+        confirm_roll_click(6, roll_id1+roll_id2-6);
+    }
 }
 
 
@@ -214,6 +218,7 @@ function seer_start(left_col, usernames, userlives, site_url) {
     });
     var confirm_btn = $("<button class='btn btn-warning'>确定</button>");
     confirm_btn.click(function () {
+        $(this).attr('disabled','disabled');
         $.post(site_url + "confirm_seen/", {}, function (data, statue) {
             seer_div.remove();
             console.log(data);
