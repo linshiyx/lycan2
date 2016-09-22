@@ -73,7 +73,12 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) 
     roll_div.append(deny_btn);
 
     if (roll_id1 == 6 || roll_id2 == 6) {
-        confirm_roll_click(6, roll_id1+roll_id2-6);
+        // confirm_roll_click(6, roll_id1+roll_id2-6);
+        if(roll_id1==6) {
+            deny_btn.attr("disabled", true);
+        } else {
+            confirm_btn.attr("disabled", true);
+        }
     }
 }
 
