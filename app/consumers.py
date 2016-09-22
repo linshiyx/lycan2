@@ -310,7 +310,7 @@ def hunter_start(message):
             return
     # 若猎人死了，开始猎人阶段
     room = Room.objects.filter(room_id=room_id)[0]
-    resp = {'func': lycan_static.func['hunter_act'], "talk_list": room.talk_list, 'hunter': hunter}
+    resp = {'func': lycan_static.func['hunter_act'], "talk_list": json.loads(room.talk_list), 'hunter': hunter}
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
     })

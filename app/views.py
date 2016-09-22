@@ -118,6 +118,10 @@ def ready(request):
     user = users[request.user.username]
     logger.debug(request.user.username + ' ready')
     if(ready == '0'):
+        resp = {'func': lycan_static.func['chat_gm'], 'text': request.user.username + u' 已准备'}
+        Group('room-%s' % room_id).send({
+            'text': json.dumps(resp)
+        })
         user['ready'] = '1'
         room.users = json.dumps(users)
         room.save()
@@ -132,6 +136,10 @@ def ready(request):
         user['ready'] = '0'
         room.users = json.dumps(users)
         room.save()
+        resp = {'func': lycan_static.func['chat_gm'], 'text': request.user.username + u' 取消准备'}
+        Group('room-%s' % room_id).send({
+            'text': json.dumps(resp)
+        })
         return HttpResponse('0')
 
 
@@ -148,6 +156,10 @@ def confirm_roll(request):
     user['roll2'] = request.POST['roll2']
     room.users = json.dumps(users)
     room.save()
+    resp = {'func': lycan_static.func['chat_gm'], 'text': request.user.username + u' 已确认身份'}
+    Group('room-%s' % room_id).send({
+        'text': json.dumps(resp)
+    })
     # 判断是否全部确认完毕
     all_confirm = True
     for username in users:

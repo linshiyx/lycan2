@@ -134,12 +134,12 @@ def deal_dead(room_id, dead):
         if users[name]['life'] == 1 and name in dead:
             for name1 in valentine:
                 lost_dict[name1] = users[name1]['life']
-    update_dead(room_id, lost_dict)
-    # 根据生命减少查看是否有猎人
     for name in lost_dict:
         for i in range(0, lost_dict[name]):
-            if users[name]['roll' + str(3 + i - users[name]['life'])] == u'猎人':
+            if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'猎人':
                 hunter = name
+    update_dead(room_id, lost_dict)
+    # 根据生命减少查看是否有猎人
     return hunter
 
 

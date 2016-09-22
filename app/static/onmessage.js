@@ -359,7 +359,8 @@ function hunter_act(left_col, usernames, talk_list, site_url) {
     var hunted_div = $("<div class='btn-group' role='group'></div>");
     for (var i = 0; i < usernames.length; i++) {
         var btn = $("<button type='button' class='btn btn-default'></button>");
-        if (!$.inArray(username[i], talk_list)) btn.attr("disabled", true);
+        if ($.inArray(usernames[i], talk_list) == -1) 
+            btn.attr("disabled", true);
         btn.html(usernames[i]);
         hunted_div.append(btn);
         btn.click(function (ev) {
@@ -494,7 +495,7 @@ function vote_dead(left_col, usernames, talk_list, site_url) {
     var voted_div = $("<div class='btn-group' role='group'></div>");
     for (var i = 0; i < usernames.length; i++) {
         var btn = $("<button type='button' class='btn btn-default'></button>");
-        if (!$.inArray(username[i], talk_list)) btn.attr("disabled", true);
+        if ($.inArray(usernames[i], talk_list) == -1) btn.attr("disabled", true);
         btn.html(usernames[i]);
         voted_div.append(btn);
         btn.click(function (ev) {
