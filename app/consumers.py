@@ -141,7 +141,7 @@ def guard_start(message):
 
 def seer_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(2,10))
+        time.sleep(random.randint(3,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若预言家存在
@@ -168,7 +168,7 @@ def seer_start(message):
 
 def lycan_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(2,10))
+        time.sleep(random.randint(5,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 通知狼人回合开始
@@ -193,7 +193,7 @@ def lycan_start(message):
 
 def witch_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(2,10))
+        time.sleep(random.randint(5,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若女巫存在
@@ -223,7 +223,7 @@ def witch_start(message):
 
 def day_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(2,10))
+        time.sleep(random.randint(4,10))
     # 通知天亮了
     room_id = message['room_id']
     resp = {'func': lycan_static.func['chat_gm'], 'text': u'天亮了'}

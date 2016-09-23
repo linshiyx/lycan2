@@ -67,6 +67,8 @@ def is_alive(room, roll_name):
 def current_roll(room, username):
     users = json.loads(room.users)
     user_life = users[username]['life']
+    if user_life < 1:
+        return ''
     return lycan_static.roll_name[users[username]['roll' + str(3 - user_life)]]
 
 
