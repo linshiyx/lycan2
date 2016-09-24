@@ -8,7 +8,7 @@ class Room(models.Model):
     game_round = models.IntegerField(default=0)
     users = models.CharField(max_length=2000)
     valentine = models.CharField(max_length=50, default='[]')
-    guarded = models.CharField(max_length=20, default='')
+    guarded = models.CharField(max_length=60, default='{"now":"", "last":""}')
     lycan = models.CharField(max_length=200, default='{"lycan_choice": {}}')
     poison = models.CharField(max_length=200, default='{"poison": 3}')
     badge = models.CharField(max_length=20, default='')

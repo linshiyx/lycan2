@@ -208,13 +208,15 @@ def confirm_valentine(request):
 
 
 def confirm_guarded(request):
-    guarded = request.POST['guarded']
+    choice = request.POST['guarded']
     room_id = request.session['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
-    if room.guarded:
+    guarded = json.loads(room.guarded)
+    if guarded['now']:
         return
-    logger.debug('confirm_guarded:' + guarded)
-    room.guarded = guarded
+    guarded['now'] = choice
+    logger.debug('confirm_guarded:' + guarded['now'])
+    room.guarded = json.dumps(guarded)
     room.save()
     Channel('seer_start').send({
         'room_id': room_id,
@@ -259,8 +261,8 @@ def confirm_dead(request):
     same = True
     for name in lycan_choice:
         if lycan_choice[name] != choice:
-            same = False
             break
+            same = False
     if not same:
         return HttpResponse('not same')
     else:
@@ -341,6 +343,11 @@ def vote_badge(request):
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
         })
+        users = json.loads(room.users)
+        resp = {'func': lycan_static.func['change_badge'], 'badge_id':  users[room.badge]['pos']}
+        Group("room-%s" % room_id).send({
+            "text": json.dumps(resp),
+        })
         Channel('deliver_dead').send({
             "room_id": room_id,
         })
@@ -386,6 +393,11 @@ def hand_badge(request):
     room.save()
     logger.debug('hand_badge:' + choice)
     # 通知转交结果
+    users = json.loads(room.users)
+    resp = {'func': lycan_static.func['change_badge'], 'badge_id': users[room.badge]['pos']}
+    Group("room-%s" % room_id).send({
+        "text": json.dumps(resp),
+    })
     resp = {'func': lycan_static.func['chat_gm'], 'text': u'警长为' + room.badge}
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),

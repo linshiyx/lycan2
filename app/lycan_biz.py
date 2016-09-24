@@ -91,7 +91,10 @@ def round_init(room_id):
     room.vote_dead = '{}'
     # 初始化守卫选择
     if is_exist(room, u'守卫'):
-        room.guarded = ''
+        guarded = json.loads(room.guarded)
+        guarded['last'] = guarded['now']
+        guarded['now'] = ''
+        room.guarded = json.dumps(guarded)
     # 初始化狼人选择
     if is_exist(room, u'狼人'):
         # 清除Group
@@ -166,26 +169,6 @@ def update_dead(room_id, lost_dict):
 
 
 
-#     room = Room.objects.filter(room_id=room_id)[0]
-# def valentine_dead(room_id):
-#     users = json.loads(room.users)
-#     valentine = json.loads(room.valentine)
-#     # 将情侣生命值设为0
-#     dead = []
-#     for name in valentine:
-#         for i in range(0, users[name]['life']):
-#             dead.append(name)
-#         users[name]['life'] = 0
-#     room.users = json.dumps(users)
-#     room.save()
-#     # 通知客户端更改生命
-#     resp = {'func': lycan_static.func['notify_dead']}
-#     resp['dead'] = dead
-#     Group("room-%s" % room_id).send({
-#         "text": json.dumps(resp),
-#     })
-
-
 # 返回票数最多的名字或‘’
 def count_vote(vote_list):
     from collections import Counter
@@ -235,6 +218,16 @@ def check_result(room_id):
         result += u'狼人获胜'
     if result:
         resp = {'func': lycan_static.func['chat_gm'], 'text': result}
+        Group("room-%s" % room_id).send({
+            "text": json.dumps(resp),
+        })
+        display_roll = ''
+        for i in range(0, len(users)):
+            for name in users:
+                if users[name]['pos'] == i:
+                    display_roll = name + ' 的身份为：' + lycan_static.roll_name[users[name]['roll1']] + ' '\
+                                   + lycan_static.roll_name[users[name]['roll2']] + '\n'
+        resp = {'func': lycan_static.func['chat_gm'], 'text': display_roll}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
         })

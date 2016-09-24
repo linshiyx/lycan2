@@ -1,7 +1,7 @@
 /**
  * Created by antelope on 2016/8/5.
  */
-function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) {
+function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url, username) {
     var user_num = jsonobj.usernames.length;
     for (var i = 0; i < user_num; i++) {
         usernames.push(jsonobj.usernames[i]);
@@ -11,7 +11,7 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) 
     var roll_table = $("<table id='roll_table' class='table'></table>");
     left_col.append(roll_table);
     //                第一行
-    var tr = $("<tr></tr>");
+    var tr = $("<tr id='user_id_tr'></tr>");
     tr.append($("<td></td>").html("序号"));
     for (var i = 0; i < user_num; i++) {
         var td = $("<td></td>").html(i + 1);
@@ -23,6 +23,9 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url) 
     tr.append($("<td></td>").html("昵称"));
     for (var i = 0; i < user_num; i++) {
         var td = $("<td></td>").html(usernames[i]);
+        if(usernames[i] == username) {
+            td.css("color", "green")
+        }
         tr.append(td);
     }
     roll_table.append(tr);
@@ -141,7 +144,7 @@ function get_valentine(jsonobj, roll_div) {
 }
 
 
-function guard_start(left_col, usernames, userlives, site_url) {
+function guard_start(left_col, usernames, userlives, site_url, last) {
     var choice = "";
     var guard_div = $("<div'></div>");
     left_col.append(guard_div);
@@ -151,7 +154,7 @@ function guard_start(left_col, usernames, userlives, site_url) {
     guard_div.append(guarded_div);
     for (var i = 0; i < usernames.length; i++) {
         var btn = $("<button type='button' class='btn btn-default'></button>");
-        if (userlives[i] < 1) btn.attr("disabled", true);
+        if (userlives[i] < 1 || usernames[i] == last) btn.attr("disabled", true);
         btn.html(usernames[i]);
         guarded_div.append(btn);
         btn.click(function (ev) {
@@ -490,6 +493,18 @@ function hand_badge(left_col, usernames, userlives, site_url) {
     hand_div.append(msg_p);
     hand_div.append(handed_div);
     hand_div.append(confirm_btn);
+}
+
+
+function change_badge(badge_id) {
+    // tds = $("#user_id_tr");
+    // for(var i=0; i<tds.length; i++) {
+    //     $(tds[i]).css("color", "black");
+    // }
+    // $(tds[badge_id]).css("color", "red");
+    $("#user_id_tr td").css("color", "black");
+    $("#user_id_tr td:eq(" + (badge_id + 1) + ")").css("color", "red");
+
 }
 
 

@@ -72,12 +72,13 @@ ${parent.head()}
         $("#create_room_btn").click(function () {
             room_id = $("#room_id_input").val();
             $.post("${SITE_URL}create_room/", {
-                room_id: $("#room_id_input").val(),
+                room_id: room_id,
             }, function (data, statue) {
                 var dataobj = JSON.parse(data);
                 if (dataobj.result == "success") {
                     username = dataobj.username;
                     pos = dataobj.pos;
+                    $("#room_id").html("房间号：" + room_id);
                     $("#people_num").html(dataobj.people_num);
                     $("#prepare_window").data("kendoWindow").close();
                     connectWebSocket();
@@ -89,12 +90,13 @@ ${parent.head()}
         $("#join_room_btn").click(function () {
             room_id = $("#room_id_input").val();
             $.post("${SITE_URL}join_room/", {
-                room_id: $("#room_id_input").val(),
+                room_id: room_id,
             }, function (data, statue) {
                 var dataobj = JSON.parse(data);
                 if (dataobj.result == "success") {
                     username = dataobj.username;
                     pos = dataobj.pos;
+                    $("#room_id").html("房间号：" + room_id);
                     $("#people_num").html(dataobj.people_num);
                     $("#prepare_window").data("kendoWindow").close();
                     connectWebSocket();
@@ -145,7 +147,7 @@ ${parent.head()}
             switch(jsonobj.func) {
                 case 1:
                     $("#ready_div").remove();
-                    get_roll(jsonobj, left_col, user_roll, usernames, userlives, "${SITE_URL}");
+                    get_roll(jsonobj, left_col, user_roll, usernames, userlives, "${SITE_URL}", username);
                     break;
                 case 11:
                     $("#people_num").html(jsonobj.people_num);
@@ -184,7 +186,7 @@ ${parent.head()}
                     break;
                 case 5:
                     if(get_current_roll() == "守卫") {
-                        guard_start(left_col, usernames, userlives, "${SITE_URL}");
+                        guard_start(left_col, usernames, userlives, "${SITE_URL}", jsonobj.last);
                     }
                     break;
                 case 6:
@@ -218,6 +220,9 @@ ${parent.head()}
                     break;
                 case 96:
                     hand_badge(left_col, usernames, userlives, "${SITE_URL}");
+                    break;
+                case 97:
+                    change_badge(jsonobj.badge_id);
                     break;
                 case 100:
                     vote_dead(left_col, usernames, jsonobj.talk_list, "${SITE_URL}");
@@ -293,6 +298,9 @@ ${parent.head()}
     <div class="row" style="margin-right: -80px">
         <div class="col-md-6">
             <div id="left_col">
+                <div id="room_id">
+                    <!--<p class="panel"></p>-->
+                </div>
                 <!--准备div-->
                 <div id="ready_div">
                     <p class="panel"><span>房间人数：</span><span id="people_num"></span></p>

@@ -31,5 +31,6 @@ func = {
     'notify_dead': 9,
     'vote_badge': 95,
     'hand_badge': 96,
+    'change_badge': 97,
     'vote_dead': 100,
 }

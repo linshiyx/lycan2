@@ -133,7 +133,8 @@ def guard_start(message):
         })
         return
     # 通知
-    resp = {'func': lycan_static.func['guard_start']}
+    guarded = json.loads(room.guarded)
+    resp = {'func': lycan_static.func['guard_start'], 'last': guarded['last']}
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
     })
@@ -141,7 +142,7 @@ def guard_start(message):
 
 def seer_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(3,10))
+        time.sleep(random.randint(4,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若预言家存在
@@ -168,7 +169,7 @@ def seer_start(message):
 
 def lycan_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(5,10))
+        time.sleep(random.randint(5,12))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 通知狼人回合开始
@@ -193,7 +194,7 @@ def lycan_start(message):
 
 def witch_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(5,10))
+        time.sleep(random.randint(7,14))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若女巫存在
@@ -223,7 +224,7 @@ def witch_start(message):
 
 def day_start(message):
     if message.get('delay', False):
-        time.sleep(random.randint(4,10))
+        time.sleep(random.randint(4,12))
     # 通知天亮了
     room_id = message['room_id']
     resp = {'func': lycan_static.func['chat_gm'], 'text': u'天亮了'}
@@ -266,11 +267,11 @@ def deliver_dead(message):
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 统计死者
-    guarded = room.guarded
+    guarded = json.loads(room.guarded)
     poison = json.loads(room.poison)
     lycan = json.loads(room.lycan)
     dead = set()
-    if lycan['dead'] != guarded and not poison['is_rescue'] and lycan['dead']:
+    if lycan['dead'] != guarded['now'] and not poison['is_rescue'] and lycan['dead']:
         dead.add(lycan['dead'])
     if poison['dead']:
         dead.add(poison['dead'])
