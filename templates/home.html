@@ -54,6 +54,14 @@ ${parent.head()}
             });
         })
         $("#register_btn").click(function () {
+            if($("#nick_input").val() == "") {
+                $("#login_invalid_msg").html("昵称长度不能为空");
+                return;
+            }
+            if($("#psd_input").val() == "") {
+                $("#login_invalid_msg").html("密码不能为空");
+                return;
+            }
             $.post("${SITE_URL}register/", {
                 nick: $("#nick_input").val(),
                 psd: $("#psd_input").val(),
@@ -71,6 +79,10 @@ ${parent.head()}
 
         $("#create_room_btn").click(function () {
             room_id = $("#room_id_input").val();
+            if(room_id == "") {
+                $("#prepare_invalid_msg").html("房间号不能为空");
+                return;
+            }
             $.post("${SITE_URL}create_room/", {
                 room_id: room_id,
             }, function (data, statue) {
@@ -89,6 +101,10 @@ ${parent.head()}
         })
         $("#join_room_btn").click(function () {
             room_id = $("#room_id_input").val();
+            if(room_id == "") {
+                $("#prepare_invalid_msg").html("房间号不能为空");
+                return;
+            }
             $.post("${SITE_URL}join_room/", {
                 room_id: room_id,
             }, function (data, statue) {
@@ -378,15 +394,14 @@ ${parent.head()}
         <form class="bs-example bs-example-form" role="form">
             <div class="input-group">
                 <span class="input-group-addon"><span class="glyphicon glyphicon-user" aria-hidden="true"></span></span>
-                <input type="text" id="nick_input" name="nick" class="form-control" placeholder="昵称" required>
+                <input type="text" id="nick_input" name="nick" class="form-control" placeholder="昵称" maxlength="10">
             </div>
             <br>
 
             <div class="input-group">
                 <span class="input-group-addon"><span class="glyphicon glyphicon-envelope"
                                                       aria-hidden="true"></span></span>
-                <input type="password" id="psd_input" name="psd" class="form-control" placeholder="密码"
-                       required>
+                <input type="password" id="psd_input" name="psd" class="form-control" placeholder="密码" maxlength="10">
             </div>
             <p id="login_invalid_msg"></p>
             <br>
@@ -404,7 +419,7 @@ ${parent.head()}
         <form class="bs-example bs-example-form" role="form">
             <div class="input-group">
                 <span class="input-group-addon"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span></span>
-                <input type="text" id="room_id_input" name="room_id" class="form-control" placeholder="房间名称" required>
+                <input type="text" id="room_id_input" name="room_id" class="form-control" placeholder="房间名称" maxlength="10">
             </div>
             <br>
             <p id="prepare_invalid_msg"></p>
