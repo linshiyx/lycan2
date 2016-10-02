@@ -122,10 +122,18 @@ def round_init(room_id):
         poison['dead'] = ''
         poison['is_rescue'] = False
         room.poison = json.dumps(poison)
-        pass
     # 初始化死人
     room.dead = '[]'
     room.save()
+
+
+def check_sheep(room_id):
+    room = Room.objects.filter(room_id=room_id)[0]
+    users = json.loads(room.users)
+    for name in users:
+        if current_roll(room, name) == u'替罪羊':
+            return name
+    return ''
 
 
 def deal_dead(room_id, dead):

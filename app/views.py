@@ -486,6 +486,8 @@ def vote_dead(request):
             badge_vote = vote_list[name]
     vote_list['badge'] = badge_vote
     dead = lycan_biz.count_vote(vote_list)
+    if not dead:
+        dead = lycan_biz.check_sheep(room_id)
     # 若选出死者
     if dead:
         # 处理投票结果
