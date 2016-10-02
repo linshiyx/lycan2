@@ -11,6 +11,7 @@ class Room(models.Model):
     guarded = models.CharField(max_length=100, default='{"now":"", "last":""}')
     lycan = models.CharField(max_length=600, default='{"lycan_choice": {}}')
     poison = models.CharField(max_length=400, default='{"poison": 3, "dead": "", "is_rescue": false}')
+    elder_life = models.IntegerField(default=2)
     badge = models.CharField(max_length=100, default='')
     can_talk = models.BooleanField(default=True)
     talk_list = models.CharField(max_length=2000, default='[]')

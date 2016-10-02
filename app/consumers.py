@@ -282,6 +282,7 @@ def vote_badge(message):
 def deliver_dead(message):
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
+    users = json.loads(room.users)
     # 统计死者
     guarded = json.loads(room.guarded)
     poison = json.loads(room.poison)
@@ -289,6 +290,13 @@ def deliver_dead(message):
     dead = set()
     if lycan['dead'] != guarded['now'] and not poison['is_rescue'] and lycan['dead']:
         dead.add(lycan['dead'])
+        if lycan_biz.current_roll(room, lycan['dead']) == u'长老':
+            if room.elder_life == 2:
+                room.elder_life = 1
+                dead.remove(lycan['dead'])
+            else:
+                room.elder_life = 0
+            room.save()
     if poison['dead']:
         dead.add(poison['dead'])
     dead = list(dead)
@@ -374,7 +382,12 @@ def free_talk(message):
     room.save()
     # 通知
     talk_list = json.loads(room.talk_list)
-    resp = {'func': lycan_static.func['free_talk'], 'talk_list': talk_list}
+    # resp = {'func': lycan_static.func['free_talk'], 'talk_list': talk_list}
+    resp = {'func': lycan_static.func['chat_gm'], 'text': u'请自由组织发言'}
+    Group("room-%s" % room_id).send({
+        "text": json.dumps(resp),
+    })
+    resp = {'func': lycan_static.func['free_talk']}
     for name in talk_list:
         Channel(users[name]['reply_channel']).send({
             'text': json.dumps(resp),

@@ -140,6 +140,7 @@ def deal_dead(room_id, dead):
     room = Room.objects.filter(room_id=room_id)[0]
     users = json.loads(room.users)
     hunter = ''
+    elder = ''
     # 生命减少记录
     lost_dict = {}
     for name in dead:
@@ -154,12 +155,19 @@ def deal_dead(room_id, dead):
         for i in range(0, lost_dict[name]):
             if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'猎人':
                 hunter = name
-    update_dead(room_id, lost_dict)
+            if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'长老':
+                elder = name
+                for name in users:
+                    if users[name]['life'] > 0 and (current_roll(room, name) != u'狼人'):
+                        users[name]['roll' + str(3 - users[name]['life'])] = '1'
+                room.users = json.dumps(users)
+                room.save()
+    update_dead(room_id, lost_dict, elder)
     # 根据生命减少查看是否有猎人
     return hunter
 
 
-def update_dead(room_id, lost_dict):
+def update_dead(room_id, lost_dict, elder):
     room = Room.objects.filter(room_id=room_id)[0]
     users = json.loads(room.users)
     talk_list = json.loads(room.talk_list)
@@ -177,6 +185,12 @@ def update_dead(room_id, lost_dict):
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
     })
+    # 判断长老
+    if elder:
+        resp = {'func': lycan_static.func['chat_gm'], 'text': u'长老死了，所有玩家现有角色失去功能'}
+        Group("room-%s" % room_id).send({
+            "text": json.dumps(resp),
+        })
 
 
 
