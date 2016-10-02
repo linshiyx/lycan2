@@ -42,14 +42,33 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url, 
     // 确认身份顺序
     var roll_id1 = parseInt(jsonobj.roll1);
     var roll_id2 = parseInt(jsonobj.roll2);
+    var roll_id3, roll_id4, theif_pos;
+    if(roll_id1 == 7) {
+        theif_pos = 1;
+    }
+    if(roll_id2 == 7) {
+        theif_pos = 2;
+    }
+    if(jsonobj.roll3) {
+        roll_id3 = parseInt(jsonobj.roll3);
+        if(theif_pos == 1) {
+            roll_id1 = roll_id3;
+        } else {
+            roll_id2 = roll_id3;
+        }
+    }
+    if(jsonobj.roll4) roll_id4 = parseInt(jsonobj.roll4);
     var roll_div = $("<div id='roll_div' style='border-bottom: 2px solid #428bca; " +
         "margin-bottom: 5px; padding-bottom: 5px'></div>");
     var roll_span = $("<span></span>");
+    var theif_div = $("<div style='display:none'></div>");
     roll_span.html("您的两个身份分别是：" + roll_list[roll_id1] + "和" + roll_list[roll_id2] + "，是否将" +
         roll_list[roll_id1] + "作为第一身份？");
     // 是与否按钮
     var confirm_btn = $("<button class='btn btn-success'>是</button>");
     var deny_btn = $("<button class='btn btn-danger'>否</button>");
+    var theif_roll1_btn = $("<button class='btn btn-default btn-success'></button>");
+    var theif_roll2_btn = $("<button class='btn btn-default'></button>");
     confirm_btn.click(function () {
         confirm_roll_click(roll_id1, roll_id2);
     });
@@ -62,6 +81,7 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url, 
         roll_span.html("身份一：" + roll_list[r1] + " 身份二：" + roll_list[r2]);
         confirm_btn.remove();
         deny_btn.remove();
+        theif_div.remove();
         $.post(site_url + "confirm_roll/", {
             roll1: r1,
             roll2: r2,
@@ -71,16 +91,54 @@ function get_roll(jsonobj, left_col, user_roll, usernames, userlives, site_url, 
     }
 
     left_col.append(roll_div);
+    roll_div.append(theif_div);
     roll_div.append(roll_span);
     roll_div.append(confirm_btn);
     roll_div.append(deny_btn);
-
-    if (roll_id1 == 6 || roll_id2 == 6) {
-        // confirm_roll_click(6, roll_id1+roll_id2-6);
-        if(roll_id1==6) {
-            deny_btn.attr("disabled", true);
-        } else {
-            confirm_btn.attr("disabled", true);
+    
+    if(roll_id3) {
+        theif_div.html("请您将盗贼替换为：");
+        theif_roll1_btn.html(roll_list[roll_id3]);
+        theif_roll2_btn.html(roll_list[roll_id4]);
+        theif_roll1_btn.click(function() {
+            theif_roll1_btn.addClass("btn-success");
+            theif_roll2_btn.removeClass("btn-success");
+            if(theif_pos == 1) {
+                roll_id1 = roll_id3;
+            } else {
+                roll_id2 = roll_id3;
+            }
+            roll_span.html("您的两个身份分别是：" + roll_list[roll_id1] + "和" + roll_list[roll_id2] + "，是否将" +
+                roll_list[roll_id1] + "作为第一身份？");
+            check_cupid();
+        });
+        theif_roll2_btn.click(function() {
+            theif_roll1_btn.removeClass("btn-success");
+            theif_roll2_btn.addClass("btn-success");
+            if(theif_pos == 1) {
+                roll_id1 = roll_id4;
+            } else {
+                roll_id2 = roll_id4;
+            }
+            roll_span.html("您的两个身份分别是：" + roll_list[roll_id1] + "和" + roll_list[roll_id2] + "，是否将" +
+                roll_list[roll_id1] + "作为第一身份？");
+            check_cupid();
+        });
+        theif_div.toggle();
+        theif_div.append(theif_roll1_btn);
+        theif_div.append(theif_roll2_btn);
+    }
+    check_cupid();
+    function check_cupid() {
+        deny_btn.attr("disabled", false);
+        confirm_btn.attr("disabled", false);
+        if (roll_id1 == 6 || roll_id2 == 6) {
+            // confirm_roll_click(6, roll_id1+roll_id2-6);
+            if(roll_id1==6) {
+                deny_btn.attr("disabled", true);
+            } else {
+                confirm_btn.attr("disabled", true);
+            }
         }
     }
 }

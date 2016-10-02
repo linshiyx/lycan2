@@ -102,19 +102,35 @@ def new_round(message):
 def cupid_start(message):
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
-    if room.game_round == 1 and lycan_biz.is_exist(room, u'丘比特'):
-        resp = {'func': lycan_static.func['cupid_start']}
+    if room.game_round - 1:
+        Channel('guard_start').send({
+            'room_id': room_id,
+        })
+        return
+    # 若丘比特存在
+    is_exist = lycan_biz.is_exist(room, u'丘比特')
+    if is_exist and room.game_round == 1:
+        resp = {'func': lycan_static.func['chat_gm'], 'text': u'丘比特请选择情侣'}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),
         })
-    else:
+    # 若丘比特不在场
+    if not lycan_biz.is_alive(room, u'丘比特'):
         Channel('guard_start').send({
             'room_id': room_id,
+            'delay': is_exist,
+        })
+    else:
+        resp = {'func': lycan_static.func['cupid_start']}
+        Group("room-%s" % room_id).send({
+            "text": json.dumps(resp),
         })
 
 
 # 守卫回合
 def guard_start(message):
+    if message.get('delay', False):
+        time.sleep(random.randint(4,10))
     room_id = message['room_id']
     room = Room.objects.filter(room_id=room_id)[0]
     # 若守卫存在

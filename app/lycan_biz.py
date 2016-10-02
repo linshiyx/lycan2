@@ -34,6 +34,9 @@ def game_start(room_id):
         resp['func'] = lycan_static.func['send_roll']
         resp['roll1'] = roll_list[roll_index]
         resp['roll2'] = roll_list[roll_index + 1]
+        if(lycan_static.roll_name[resp['roll1']] == u'盗贼' or lycan_static.roll_name[resp['roll2']] == u'盗贼'):
+            resp['roll3'] = roll_list[len(users) * 2]
+            resp['roll4'] = roll_list[len(users) * 2 + 1]
         roll_index += 2
         resp['usernames'] = usernames
         Channel(user['reply_channel']).send({

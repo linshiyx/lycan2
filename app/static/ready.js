@@ -31,7 +31,7 @@ function init_prepare_window(prepare_window) {
     });
 }
 
-var roll_list = ['狼人', '平民', '预言家', '女巫', '守卫', '猎人', '丘比特'];
+var roll_list = ['狼人', '平民', '预言家', '女巫', '守卫', '猎人', '丘比特', '盗贼', '长老', '白痴', '替罪羊'];
 
 //滑动至底部
 function chat_scroll(panel) {
