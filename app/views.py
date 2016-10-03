@@ -268,8 +268,8 @@ def confirm_dead(request):
     same = True
     for name in lycan_choice:
         if lycan_choice[name] != choice:
-            break
             same = False
+            break
     if not same:
         return HttpResponse('not same')
     else:

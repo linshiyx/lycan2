@@ -228,7 +228,7 @@ def witch_start(message):
         })
     # 若女巫不在场或无药
     poison = json.loads(room.poison)
-    if (not lycan_biz.is_alive(room, u'女巫')) or (poison['poison'] == 0):
+    if not lycan_biz.is_alive(room, u'女巫'):
         # time.sleep(random.randint(2,10))
         Channel('day_start').send({
             'room_id': room_id,

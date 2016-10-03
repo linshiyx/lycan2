@@ -68,6 +68,8 @@ def is_alive(room, roll_name):
 
 
 def current_roll(room, username):
+    if not username:
+        return ''
     users = json.loads(room.users)
     user_life = users[username]['life']
     if user_life < 1:

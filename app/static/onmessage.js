@@ -341,9 +341,10 @@ function witch_start(left_col, usernames, userlives, site_url, poison, dead) {
     var rescue_div = $("<div></div>");
     var poison_div = $("<div></div>");
     var dead_div = $("<div class='btn-group' role='group'></div>");
+    witch_div.html("今晚被咬的是" + dead);
     if (poison % 2 != 0 && dead != "") {
         var rescue_span = $("<span></span>");
-        rescue_span.html("今晚被咬的是" + dead + "，是否使用解药？");
+        rescue_span.html( "是否使用解药？");
         var rescue_btn = $("<button class='btn btn-danger'>否</button>");
         rescue_btn.click(function () {
             if (rescue_btn.hasClass("btn-success")) {
