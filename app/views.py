@@ -169,9 +169,11 @@ def confirm_roll(request):
     if all_confirm:
         publish_result = {}
         for name in users:
+            publish_result[name] = {}
             publish_result[name]['roll1'] = users[name]['roll1']
             publish_result[name]['roll2'] = users[name]['roll2']
         room.publish_result = json.dumps(publish_result)
+        room.save()
         Channel('new_round').send({
             'room_id': room_id,
         })
@@ -495,7 +497,8 @@ def vote_dead(request):
     if lycan_biz.current_roll(room, dead) == u'白痴':
         room.idiot_say = True
         room.idiot_show = True
-        resp = {'func': lycan_static.func['chat_gm'], 'text': u'请 ' + username + u' 承认智商'}
+        room.save()
+        resp = {'func': lycan_static.func['chat_gm'], 'text': u'请 ' + dead + u' 承认智商'}
         Group('room-%s' % room_id).send({
             'text': json.dumps(resp)
         })
