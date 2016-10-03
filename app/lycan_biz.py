@@ -247,11 +247,12 @@ def check_result(room_id):
             "text": json.dumps(resp),
         })
         display_roll = ''
+        publish_result = json.loads(room.publish_result)
         for i in range(0, len(users)):
             for name in users:
                 if users[name]['pos'] == i:
-                    display_roll += name + ' 的身份为：' + lycan_static.roll_name[users[name]['roll1']] + ' '\
-                                   + lycan_static.roll_name[users[name]['roll2']] + '\n'
+                    display_roll += name + ' 的身份为：' + lycan_static.roll_name[publish_result[name]['roll1']] + ' '\
+                                   + lycan_static.roll_name[publish_result[name]['roll2']] + '\n'
         resp = {'func': lycan_static.func['chat_gm'], 'text': display_roll}
         Group("room-%s" % room_id).send({
             "text": json.dumps(resp),

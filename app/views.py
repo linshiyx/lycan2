@@ -167,6 +167,11 @@ def confirm_roll(request):
         if not user.get('roll1'):
             all_confirm = False
     if all_confirm:
+        publish_result = {}
+        for name in users:
+            publish_result[name]['roll1'] = users[name]['roll1']
+            publish_result[name]['roll2'] = users[name]['roll2']
+        room.publish_result = json.dumps(publish_result)
         Channel('new_round').send({
             'room_id': room_id,
         })
@@ -486,6 +491,15 @@ def vote_dead(request):
             badge_vote = vote_list[name]
     vote_list['badge'] = badge_vote
     dead = lycan_biz.count_vote(vote_list)
+    # 处理白痴
+    if lycan_biz.current_roll(room, dead) == u'白痴':
+        room.idiot_say = True
+        room.idiot_show = True
+        resp = {'func': lycan_static.func['chat_gm'], 'text': u'请 ' + username + u' 承认智商'}
+        Group('room-%s' % room_id).send({
+            'text': json.dumps(resp)
+        })
+        return HttpResponse('idiot')
     if not dead:
         dead = lycan_biz.check_sheep(room_id)
     # 若选出死者

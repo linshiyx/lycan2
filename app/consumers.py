@@ -50,6 +50,12 @@ def ws_message(message):
         Group("room-%s" % message.channel_session['room_id']).send({
             "text": jsonstr,
         })
+        if jsonobj['text'] == u'我是白痴' and room.idiot_say:
+            room.idiot_say = False
+            room.save()
+            Channel('new_round').send({
+                'room_id': room_id,
+            })
     elif jsonobj['func'] == lycan_static.func['chat_lycan']:
         logger.info('chat_lycan:' + jsonstr)
         Group("room-%s-lycan" % message.channel_session['room_id']).send({
@@ -408,6 +414,12 @@ def vote_dead(message):
     Group("room-%s" % room_id).send({
         "text": json.dumps(resp),
     })
+    for name in talk_list:
+        if lycan_biz.current_roll(room, name) == u'白痴' and room.idiot_show:
+            talk_list.remove(name)
+            room.talk_list = json.dumps(talk_list)
+            room.save()
+            break
     resp = {'func': lycan_static.func['vote_dead'], 'talk_list': talk_list}
     for name in talk_list:
         Channel(users[name]['reply_channel']).send({
