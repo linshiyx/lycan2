@@ -7,7 +7,7 @@ class Room(models.Model):
     has_started = models.BooleanField(default=False)
     game_round = models.IntegerField(default=0)
     users = models.CharField(max_length=8000)
-    publish_result = models.CharField(max_length=3000)
+    publish_result = models.CharField(max_length=3000, default='')
     valentine = models.CharField(max_length=200, default='[]')
     guarded = models.CharField(max_length=100, default='{"now":"", "last":""}')
     lycan = models.CharField(max_length=600, default='{"lycan_choice": {}}')
