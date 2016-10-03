@@ -149,24 +149,51 @@ def deal_dead(room_id, dead):
         lost_dict[name] = 1
     # 若有情侣死透，则两人皆死透
     valentine = json.loads(room.valentine)
-    for name in valentine:
-        if users[name]['life'] == 1 and name in dead:
-            for name1 in valentine:
-                lost_dict[name1] = users[name1]['life']
+    lost_dict = check_valentine(lost_dict, valentine, users)
+    # 查看猎人是否死亡
+    hunter = check_hunter(lost_dict, users)
+    # 查看长老是否死亡
+    elder = ''
     for name in lost_dict:
         for i in range(0, lost_dict[name]):
-            if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'猎人':
-                hunter = name
             if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'长老':
                 elder = name
-                for name in users:
-                    if users[name]['life'] > 0 and (current_roll(room, name) != u'狼人'):
-                        users[name]['roll' + str(3 - users[name]['life'])] = '1'
-                room.users = json.dumps(users)
-                room.save()
+    # 若长老死了，翻牌的白痴即死
+    if elder:
+        for name in users:
+            if users[name]['life'] > 0 and (current_roll(room, name) == u'白痴') and room.idiot_show:
+                if lost_dict.get(name, 0) < 1:
+                    lost_dict[name] = 1
+                    # 白痴死后可能连带情侣
+                    lost_dict = check_valentine(lost_dict, valentine, users)
+                    break
+        for name in users:
+            if users[name]['life'] > 0 and (current_roll(room, name) != u'狼人'):
+                users[name]['roll' + str(3 - users[name]['life'])] = '1'
+        # 长老死了，猎人可能失去身份
+        hunter = check_hunter(lost_dict, users)
+        room.users = json.dumps(users)
+        room.save()
     update_dead(room_id, lost_dict, elder)
     # 根据生命减少查看是否有猎人
     return hunter
+
+
+def check_valentine(lost_dict, valentine, users):
+    for name in valentine:
+        if users[name]['life'] == 1 and name in lost_dict:
+            for name1 in valentine:
+                lost_dict[name1] = users[name1]['life']
+    return lost_dict
+
+
+def check_hunter(lost_dict, users):
+    for name in lost_dict:
+        for i in range(0, lost_dict[name]):
+            if lycan_static.roll_name[users[name]['roll' + str(3 + i - users[name]['life'])]] == u'猎人':
+                return name
+    return ''
+
 
 
 def update_dead(room_id, lost_dict, elder):
@@ -176,7 +203,8 @@ def update_dead(room_id, lost_dict, elder):
     # 生命减少,且从可交流列表移除
     for name in lost_dict:
         users[name]['life'] -= lost_dict[name]
-        talk_list.remove(name)
+        if name in talk_list:
+            talk_list.remove(name)
     room.users = json.dumps(users)
     room.talk_list = json.dumps(talk_list)
     room.save()
